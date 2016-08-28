@@ -20,7 +20,11 @@
       
       <ul class="nav navbar-nav navbar-right">
 	{% if logged_in %}
-        <li><p class="navbar-text">{{ session['user_data']['name']}}</li>
+
+	<li><a class="navbar-brand" href="#">
+	    <img src="{{ session['user_data']['avatar_url'] }}&s=30" 
+		 width="30" height="30" style="display: inline-block;" ></a></li>
+	<li><p class="navbar-text">{{ session['user_data']['name']}}</p></li>	
         <li><p class="navbar-text">Github userid: {{ session['user_data']['login']}}</li>
 	{% endif %}
         <li>
