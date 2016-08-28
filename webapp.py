@@ -1,11 +1,26 @@
 from flask import Flask, redirect, url_for, session, request, jsonify
 from flask_oauthlib.client import OAuth
+from flask import render_template
 
 import os
 
+
+if os.getenv('GITHUB_CLIENT_ID') == None or \
+        os.getenv('GITHUB_CLIENT_SECRET') == None or \
+        os.getenv('APP_SECRET_KEY') == None:
+    raise GithubOAuthVarsNotDefined('''
+      Please define environment variables:
+         GITHUB_CLIENT_ID
+         GITHUB_CLIENT_SECRET
+         APP_SECRET_KEY
+      ''')
+
+
 app = Flask(__name__)
+
 app.debug = True
-app.secret_key = 'development'
+
+app.secret_key = os.environ['APP_SECRET_KEY']
 oauth = OAuth(app)
 
 # This code originally from https://github.com/lepture/flask-oauthlib/blob/master/example/github.py
@@ -15,13 +30,6 @@ oauth = OAuth(app)
 class GithubOAuthVarsNotDefined(Exception):
     '''raise this if the necessary env variables are not defined '''
 
-if os.getenv('GITHUB_CLIENT_ID') == None or \
-        os.getenv('GITHUB_CLIENT_SECRET') == None:
-    raise GithubOAuthVarsNotDefined('''
-      Please define environment variables:
-         GITHUB_CLIENT_ID
-         GITHUB_CLIENT_SECRET
-      ''')
 
 github = oauth.remote_app(
     'github',
@@ -36,36 +44,59 @@ github = oauth.remote_app(
 )
 
 
+@app.context_processor
+def inject_logged_in():
+    print "Checking isLoggedIn"
+    return dict(logged_in=('github_token' in session))
+
 @app.route('/')
-def index():
+def home():
+    return render_template('home.html')
+    '''
     if 'github_token' in session:
         me = github.get('user')
         return jsonify(me.data)
     return redirect(url_for('login'))
-
+    '''
 
 @app.route('/login')
 def login():
     return github.authorize(callback=url_for('authorized', _external=True))
 
-
 @app.route('/logout')
 def logout():
-    session.pop('github_token', None)
-    return redirect(url_for('index'))
+    session.clear()
+    return redirect(url_for('home'))
+
+
+#@app.route('/logout')
+#def logout():
+#    session.pop('github_token', None)
+#    return redirect(url_for('index'))
 
 
 @app.route('/login/authorized')
 def authorized():
     resp = github.authorized_response()
     if resp is None:
-        return 'Access denied: reason=%s error=%s' % (
+        session.clear()
+        session['login_errors'] =  'Access denied: reason=%s error=%s' % (
             request.args['error'],
             request.args['error_description']
-        )
-    session['github_token'] = (resp['access_token'], '')
-    me = github.get('user')
-    return jsonify(me.data)
+        )        
+    else:
+        session['github_token'] = (resp['access_token'], '')
+        session['user_data']=github.get('user').data
+    return redirect(url_for('home'))
+
+
+@app.route('/page1')
+def renderPage1():
+    return render_template('page1.html')
+
+@app.route('/page2')
+def renderPage2():
+    return render_template('page2.html')
 
 
 @github.tokengetter
