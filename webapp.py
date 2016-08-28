@@ -79,9 +79,10 @@ def authorized():
     resp = github.authorized_response()
     if resp is None:
         session.clear()
-        login_error_message = 'Access denied: reason=%s error=%s' % (
+        login_error_message = 'Access denied: reason=%s error=%s full=%s' % (
             request.args['error'],
-            request.args['error_description']
+            request.args['error_description'],
+            pprint.pformat(request.args)
         )        
         flash(login_error_message, 'error')
     else:
