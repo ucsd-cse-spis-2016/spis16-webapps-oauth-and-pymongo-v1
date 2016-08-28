@@ -19,8 +19,17 @@
       </ul>
       
       <ul class="nav navbar-nav navbar-right">
-        <li>Username will go here</li>          
-        <li>{% if logged_in %}<a href="/logout">Logout</a>{% else %}<a href="/login">Login</a>{% endif %}</li>
+	{% if logged_in %}
+        <li><p class="navbar-text">{{ session['user_data']['name']}}</li>
+        <li><p class="navbar-text">Github userid: {{ session['user_data']['login']}}</li>
+	{% endif %}
+        <li>
+	  {% if logged_in %}
+	  <a href="/logout">Logout</a>
+	  {% else %}
+	  <a href="/login">Login</a>
+	  {% endif %}
+	</li>
       </ul>
     </div><!-- /.navbar-collapse -->
   </div><!-- /.container-fluid -->
