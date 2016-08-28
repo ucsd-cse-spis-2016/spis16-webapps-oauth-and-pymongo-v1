@@ -1,10 +1,9 @@
 from flask import Flask, redirect, url_for, session, request, jsonify
 from flask_oauthlib.client import OAuth
-from flask import render_template
+from flask import render_template, flash
+
 import pprint
-
 import os
-
 
 if os.getenv('GITHUB_CLIENT_ID') == None or \
         os.getenv('GITHUB_CLIENT_SECRET') == None or \
@@ -15,7 +14,6 @@ if os.getenv('GITHUB_CLIENT_ID') == None or \
          GITHUB_CLIENT_SECRET
          APP_SECRET_KEY
       ''')
-
 
 app = Flask(__name__)
 
@@ -30,7 +28,6 @@ oauth = OAuth(app)
 
 class GithubOAuthVarsNotDefined(Exception):
     '''raise this if the necessary env variables are not defined '''
-
 
 github = oauth.remote_app(
     'github',
@@ -67,6 +64,7 @@ def login():
 @app.route('/logout')
 def logout():
     session.clear()
+    flash('You were logged out')
     return redirect(url_for('home'))
 
 
@@ -81,13 +79,19 @@ def authorized():
     resp = github.authorized_response()
     if resp is None:
         session.clear()
-        session['login_errors'] =  'Access denied: reason=%s error=%s' % (
+        login_error_message = 'Access denied: reason=%s error=%s' % (
             request.args['error'],
             request.args['error_description']
         )        
+        flash(login_error_message, 'error')
     else:
-        session['github_token'] = (resp['access_token'], '')
-        session['user_data']=github.get('user').data
+        try:
+            session['github_token'] = (resp['access_token'], '')
+            session['user_data']=github.get('user').data
+            flash('You were successfully logged in')
+        except:
+            session.clear()
+            flash('Unable to login, please try again',error)
     return redirect(url_for('home'))
 
 

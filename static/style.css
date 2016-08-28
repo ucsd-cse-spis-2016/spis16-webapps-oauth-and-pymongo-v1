@@ -1,0 +1,11 @@
+body {
+
+}
+
+#content {
+     margin-left: 20px;
+}
+
+div.flash-messages {
+  min-height: 4em;
+}
