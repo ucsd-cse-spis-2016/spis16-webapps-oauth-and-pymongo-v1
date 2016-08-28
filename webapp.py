@@ -9,6 +9,9 @@ import os
 import sys
 import traceback
 
+class GithubOAuthVarsNotDefined(Exception):
+    '''raise this if the necessary env variables are not defined '''
+
 if os.getenv('GITHUB_CLIENT_ID') == None or \
         os.getenv('GITHUB_CLIENT_SECRET') == None or \
         os.getenv('APP_SECRET_KEY') == None or \
@@ -32,8 +35,6 @@ oauth = OAuth(app)
 # Edited by P. Conrad for SPIS 2016 to add getting Client Id and Secret from
 # environment variables, so that this will work on Heroku.
 
-class GithubOAuthVarsNotDefined(Exception):
-    '''raise this if the necessary env variables are not defined '''
 
 github = oauth.remote_app(
     'github',
