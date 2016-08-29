@@ -12,18 +12,13 @@ import traceback
 class GithubOAuthVarsNotDefined(Exception):
     '''raise this if the necessary env variables are not defined '''
 
-if os.getenv('GITHUB_CLIENT_ID') == None or \
-        os.getenv('GITHUB_CLIENT_SECRET') == None or \
-        os.getenv('APP_SECRET_KEY') == None or \
-        os.getenv('GITHUB_ORG') == None:
-    raise GithubOAuthVarsNotDefined('''
-      Please define environment variables:
-         GITHUB_CLIENT_ID
-         GITHUB_CLIENT_SECRET
-         GITHUB_ORG
-         APP_SECRET_KEY
-      ''')
+env_vars_needed = ['GITHUB_CLIENT_ID', 'GITHUB_CLIENT_SECRET', 'APP_SECRET_KEY', 'GITHUB_ORG', 
+                   'MONGO_DB_HOST', 'MONGO_DB_PORT', 'MONGO_DB_DATABASE_NAME', 'MONGO_DB_DATABASE_USERNAME', 'MONGO_DB_DATABASE_PASSWORD']
 
+for e in env_vars_needed: 
+    if os.getenv(e) == None:
+        raise GithubOAuthVarsNotDefined("Please define environment variables: " + pprint.pformat(env_vars_needed))
+                                        
 app = Flask(__name__)
 
 app.debug = True
