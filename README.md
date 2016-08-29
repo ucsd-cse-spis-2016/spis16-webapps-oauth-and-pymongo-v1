@@ -1,4 +1,4 @@
-# spis16-webapps-oauth-github-org-example 
+# spis16-webapps-oauth-and-pymongo-v1
 
 Running on heroku at: <https://evening-earth-75796.herokuapp.com/>
 
