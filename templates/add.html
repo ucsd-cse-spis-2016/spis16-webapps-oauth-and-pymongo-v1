@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+
+{% block title %}add{% endblock %}
+
+{% block content %}
+  <h1>Add</h1>
+
+<form action="/write" method="POST">
+  <textarea name="userinput" id="userinput" cols="50" rows="4"></textarea>
+  <input type="submit" value="Submit">
+ </form>
+
+{% endblock %}
