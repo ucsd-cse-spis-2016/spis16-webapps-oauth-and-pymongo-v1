@@ -77,13 +77,6 @@ def logout():
     flash('You were logged out')
     return redirect(url_for('home'))
 
-
-#@app.route('/logout')
-#def logout():
-#    session.pop('github_token', None)
-#    return redirect(url_for('index'))
-
-
 @app.route('/login/authorized')
 def authorized():
     resp = github.authorized_response()
@@ -132,25 +125,24 @@ def authorized():
 
     return redirect(url_for('home'))    
     
+@app.route('/list')
+def renderList():
+    userinputs = [x for x in handle.mycollection.find()]
+    return render_template('list.html',userinputs = userinputs)
 
+@app.route('/add')
+def renderAdd():
+    return render_template('add.html')
 
-@app.route('/page1')
-def renderPage1():
-    if 'user_data' in session:
-        user_data_pprint = pprint.pformat(session['user_data'])
-    else:
-        user_data_pprint = '';
-    return render_template('page1.html',dump_user_data=user_data_pprint)
-
-@app.route('/page2')
-def renderPage2():
-    return render_template('page2.html')
-
+@app.route('/add_result')
+def renderAddResult():
+    userinput = request.form.get("userinput")
+    oid = handle.mycollection.insert({"message":userinput})
+    return render_template('add_result.html', oid=oid)
 
 @github.tokengetter
 def get_github_oauth_token():
     return session.get('github_token')
 
-
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True) # change to False when running in production
