@@ -143,13 +143,24 @@ def authorized():
 
     return redirect(url_for('home'))    
     
-@app.route('/list')
-def list():
+@app.route('/listAll')
+def listAll():
+    if not is_logged_in():
+        flash("You must be logged in to do that",'error')
+        return redirect(url_for('home')) 
+    login = session['user_data']['login']   
+    userinputs = [x for x in mongo.db.mycollection.find()]
+    return render_template('list.html',userinputs = userinputs,login=login)
+
+@app.route('/listMine')
+def listMine():
     if not is_logged_in():
         flash("You must be logged in to do that",'error')
         return redirect(url_for('home'))    
-    userinputs = [x for x in mongo.db.mycollection.find()]
-    return render_template('list.html',userinputs = userinputs)
+    login = session['user_data']['login']
+    userinputs = [x for x in mongo.db.mycollection.find({'login':login})]
+    return render_template('list.html',userinputs = userinputs,login=login)
+
 
 @app.route('/add')
 def add():
@@ -163,7 +174,18 @@ def delete(oid):
     if not is_logged_in():
         flash("You must be logged in to do that",'error')
         return redirect(url_for('home'))    
-    result = mongo.db.mycollection.delete_one({'_id': ObjectId(oid)})
+    login = session['user_data']['login']    
+    result = mongo.db.mycollection.find_one({'_id': ObjectId(oid)})
+    if not 'login' in result:
+        flash("Error deleting record with oid " + repr(oid) + "; could not determine user for record",
+              "error")
+        return redirect(url_for('listAll'))
+    elif result['login'] != login:              
+        flash("Cannot delete record for oid " + 
+              repr(oid) + " belonging to user " + result['login'],'error')
+        return redirect(url_for('listAll'))
+                  
+    result = mongo.db.mycollection.delete_one({'_id': ObjectId(oid),'login':login})
     if result.deleted_count == 0:
         flash("Error: Record with oid " + repr(oid) + " was not deleted",'error')
     elif result.deleted_count == 1:
@@ -172,7 +194,7 @@ def delete(oid):
         flash("Error: Unexpected result.deleted_count=" + \
                   str(result.deleted_count))
 
-    return redirect(url_for('list'))
+    return redirect(url_for('listAll'))
 
 
 @app.route('/write',methods=['POST'])
@@ -182,11 +204,16 @@ def write():
         return redirect(url_for('home'))    
     title = request.form.get("title") # match "id", "name" in form
     content = request.form.get("content") # match "id", "name" in form
+    login = session['user_data']['login']    
     result = mongo.db.mycollection.insert_one(
-        {"title":title, "content":content}
+            {
+                "title"   : title, 
+                "content" : content,
+                "login"   : login
+            }
         )
     flash("Saved to database with oid=" + str(result.inserted_id))
-    return redirect(url_for('list'))
+    return redirect(url_for('listAll'))
 
 @github.tokengetter
 def get_github_oauth_token():

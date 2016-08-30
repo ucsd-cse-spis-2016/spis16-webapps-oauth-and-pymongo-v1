@@ -8,6 +8,7 @@
 <table>
   <tr>
     <th>oid</th>
+    <th>user</th>
     <th>content</th>
     <th>title</th>
     <th>delete</th>
@@ -16,9 +17,11 @@
   {% for userinput in userinputs %}
   <tr>
     <td> {{userinput._id}} </td>
+    <td> {{userinput.login}} </td>
     <td> {{ userinput.title }} </td>
     <td><pre>{{ userinput.content }}</pre></td>
     <td>
+      {% if userinput.login==login %}
       <form name="delete_{{userinput._id}}" 
 	    method="post" 
 	    action="/delete/{{userinput._id}}">
@@ -27,6 +30,7 @@
 	<span class="glyphicon glyphicon-remove"></span>
 	</a>
       </form>
+     {% endif %}
     </td>
   </tr>
   {% endfor %}
