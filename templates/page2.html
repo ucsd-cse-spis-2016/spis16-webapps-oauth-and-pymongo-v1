@@ -3,8 +3,10 @@
 {% block title %}page1{% endblock %}
 
 {% block content %}
-  <h1>This is Page 2</h1>
+  <h1>List</h1>
 
-<p>Lorem ipsum Tritons rule!</p>
+{% for userinput in userinputs %}
+ <p>'{{userinput.message}}' has database id {{userinput._id}}</p>
+ {% endfor %}
 
 {% endblock %}
