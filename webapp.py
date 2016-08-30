@@ -2,7 +2,9 @@ from flask import Flask, redirect, url_for, session, request, jsonify
 from flask_oauthlib.client import OAuth
 from flask import render_template, flash, Markup
 
-from pymongo import MongoClient
+from flask.ext.pymongo import PyMongo
+from flask.ext.pymongo import ObjectId
+
 
 from github import Github
 
@@ -14,27 +16,42 @@ import traceback
 class GithubOAuthVarsNotDefined(Exception):
     '''raise this if the necessary env variables are not defined '''
 
-env_vars_needed = ['GITHUB_CLIENT_ID', 'GITHUB_CLIENT_SECRET', 'APP_SECRET_KEY', 'GITHUB_ORG', 
-                   'MONGO_DB_HOST', 'MONGO_DB_PORT', 'MONGO_DB_DATABASE_NAME', 'MONGO_DB_DATABASE_USERNAME', 'MONGO_DB_DATABASE_PASSWORD']
+env_vars_needed = ['GITHUB_CLIENT_ID', 'GITHUB_CLIENT_SECRET',
+                   'APP_SECRET_KEY', 'GITHUB_ORG', 
+                   'MONGO_HOST', 'MONGO_PORT', 'MONGO_DBNAME', 
+                   'MONGO_USERNAME', 'MONGO_PASSWORD']
 
 for e in env_vars_needed: 
     if os.getenv(e) == None:
-        raise GithubOAuthVarsNotDefined("Please define environment variables: " + pprint.pformat(env_vars_needed))
-   
-def connect():
-   # Substitute the 5 pieces of information you got when creating
-   # the Mongo DB Database (underlined in red in the screenshots)
-   # Obviously, do not store your password as plaintext in practice
-    connection = MongoClient(MONGO_DB_HOST, MONGO_DB_PORT)
-    handle = connection[MONGO_DB_DATABASE_NAME]
-    handle.authenticate(MONGO_DB_DATABASE_USERNAME, MONGO_DB_DATABASE_PASSWORD)
-    return handle   
+        raise GithubOAuthVarsNotDefined(
+            "Please define environment variables: \r\n" + 
+            pprint.pformat(env_vars_needed) + """
+For local operation, define in env.sh, then at command line, run:
+  . env.sh
+For Heroku, define variables via Settings=>Reveal Config Vars
+
+""" )
+
+#def connect():
+#   # Substitute the 5 pieces of information you got when creating
+#   # the Mongo DB Database (underlined in red in the screenshots)
+#   # Obviously, do not store your password as plaintext in practice
+#    connection = MongoClient(MONGO_DB_HOST, MONGO_DB_PORT)
+#    handle = connection[MONGO_DB_DATABASE_NAME]
+#    handle.authenticate(MONGO_DB_DATABASE_USERNAME, MONGO_DB_DATABASE_PASSWORD)
+#    return handle   
    
 app = Flask(__name__)
-handle = connect()
 
 app.secret_key = os.environ['APP_SECRET_KEY']
 oauth = OAuth(app)
+
+app.config['MONGO_HOST'] = os.environ['MONGO_HOST']
+app.config['MONGO_PORT'] = int(os.environ['MONGO_PORT'])
+app.config['MONGO_DBNAME'] = os.environ['MONGO_DBNAME']
+app.config['MONGO_USERNAME'] = os.environ['MONGO_USERNAME']
+app.config['MONGO_PASSWORD'] = os.environ['MONGO_PASSWORD']
+mongo = PyMongo(app)
 
 # This code originally from https://github.com/lepture/flask-oauthlib/blob/master/example/github.py
 # Edited by P. Conrad for SPIS 2016 to add getting Client Id and Secret from
@@ -52,7 +69,6 @@ github = oauth.remote_app(
     access_token_url='https://github.com/login/oauth/access_token',
     authorize_url='https://github.com/login/oauth/authorize'
 )
-
 
 @app.context_processor
 def inject_logged_in():
@@ -126,19 +142,37 @@ def authorized():
     return redirect(url_for('home'))    
     
 @app.route('/list')
-def renderList():
-    userinputs = [x for x in handle.mycollection.find()]
+def list():
+    userinputs = [x for x in mongo.db.mycollection.find()]
     return render_template('list.html',userinputs = userinputs)
 
 @app.route('/add')
-def renderAdd():
+def add():
     return render_template('add.html')
 
-@app.route('/add_result')
-def renderAddResult():
-    userinput = request.form.get("userinput")
-    oid = handle.mycollection.insert({"message":userinput})
-    return render_template('add_result.html', oid=oid)
+@app.route('/delete/<oid>',methods=['POST'])
+def delete(oid):
+    result = mongo.db.mycollection.delete_one({'_id': ObjectId(oid)})
+    if result.deleted_count == 0:
+        flash("Error: Record with oid " + repr(oid) + " was not deleted",'error')
+    elif result.deleted_count == 1:
+        flash("Record with oid " + repr(oid) + " deleted")
+    else:
+        flash("Error: Unexpected result.deleted_count=" + \
+                  str(result.deleted_count))
+
+    return redirect(url_for('list'))
+
+
+@app.route('/write',methods=['POST'])
+def write():
+    title = request.form.get("title") # match "id", "name" in form
+    content = request.form.get("content") # match "id", "name" in form
+    result = mongo.db.mycollection.insert_one(
+        {"title":title, "content":content}
+        )
+    flash("Saved to database with oid=" + str(result.inserted_id))
+    return redirect(url_for('list'))
 
 @github.tokengetter
 def get_github_oauth_token():

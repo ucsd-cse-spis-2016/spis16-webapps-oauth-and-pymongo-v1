@@ -5,9 +5,21 @@
 {% block content %}
   <h1>Add</h1>
 
-<form action="/write" method="POST">
-  <textarea name="userinput" id="userinput" cols="50" rows="4"></textarea>
-  <input type="submit" value="Submit">
- </form>
+  <form action="/write" method="POST">
+    <table>
+      <tr>
+	<th>Title</th>
+	<td><input name="title" id="title" width="30"></input></td>
+      </tr>
+      <tr>
+	<th>Content</th>
+	<td>
+	  <textarea name="content" id="content" cols="50" rows="4"></textarea>
+	</td>
+      </tr>
+    </table>
+    <input type="submit" value="Add Note">
+    <input type="button" onclick="window.href='/'" value="Cancel">
+  </form>
 
 {% endblock %}

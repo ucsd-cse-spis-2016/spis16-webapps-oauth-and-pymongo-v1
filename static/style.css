@@ -9,3 +9,16 @@ body {
 div.flash-messages {
   min-height: 4em;
 }
+
+table {
+      border-collapse: collapse;
+}
+table td {
+      border: 1px solid #333;
+      padding: 0.5em;
+}
+
+table th {
+      padding: 0.5em;
+      border: 1px solid #000;
+}

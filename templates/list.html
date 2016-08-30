@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+
+{% block title %}page1{% endblock %}
+
+{% block content %}
+<h1>List</h1>
+
+<table>
+  <tr>
+    <th>oid</th>
+    <th>content</th>
+    <th>title</th>
+    <th>delete</th>
+  </tr>
+
+  {% for userinput in userinputs %}
+  <tr>
+    <td> {{userinput._id}} </td>
+    <td> {{ userinput.title }} </td>
+    <td><pre>{{ userinput.content }}</pre></td>
+    <td>
+      <form name="delete_{{userinput._id}}" 
+	    method="post" 
+	    action="/delete/{{userinput._id}}">
+	<a href="#" 
+	   onclick="document.forms['delete_{{userinput._id}}'].submit();">
+	<span class="glyphicon glyphicon-remove"></span>
+	</a>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+
+</table>
+
+{% endblock %}

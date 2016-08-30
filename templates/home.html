@@ -4,16 +4,19 @@
 
 {% block content %}
   <h1>Home</h1>
-  <ul>
-    <li><a href="/page1">That thing we do</a></li>
-    <li><a href="/page2">The other thing</a></li>
-  </ul>
 
-<p>This is a sample application to demonstrate authenticating against github oauth,
-using Flask, on Heroku.   This app restricts logins only to members of the 
-github organization: {{ github_org }} </p>
+<p>This is a sample application to demonstrate the following techniques:</p>
 
-<p>The source code is available on github at <a href="https://github.com/ucsd-cse-spis-2016/spis16-webapps-oauth-example">https://github.com/ucsd-cse-spis-2016/spis16-webapps-oauth-example</a></p>
+<ul>
+ <li> Using Flask, a Python-based webapp framework</li>
+ <li> Using Heroku for hosting that app</li>
+ <li> Using Github OAuth for user logins</li>
+ <li> Restricting user logins to members of the github org: {{ github_org }} <li>
+ <li> Using MongoDB, a NoSQL database hosted on mlab.com, for database storage. <li>
+</ul>
+
+<p>The source code is available on github at <a href="https://github.com/ucsd-cse-spis-2016/spis16-webapps-oauth-and-pymongo-v1">https://github.com/ucsd-cse-spis-2016/spis16-webapps-oauth-and-pymongo-v1
+</a></p>
 
 <p>This is provided for participants in <a href="https://ucsd-cse-spis-2016.github.io">UCSD CSE SPIS 2016.</p>
 
