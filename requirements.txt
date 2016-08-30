@@ -7,3 +7,5 @@ wheel==0.24.0
 gunicorn==19.3.0
 Flask-OAuthlib==0.9.3
 PyGithub==1.26.0
+pymongo==3.3.0
+
