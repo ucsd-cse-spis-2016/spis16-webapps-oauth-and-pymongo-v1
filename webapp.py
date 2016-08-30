@@ -2,6 +2,8 @@ from flask import Flask, redirect, url_for, session, request, jsonify
 from flask_oauthlib.client import OAuth
 from flask import render_template, flash, Markup
 
+from pymongo import MongoClient
+
 from github import Github
 
 import pprint
@@ -18,10 +20,18 @@ env_vars_needed = ['GITHUB_CLIENT_ID', 'GITHUB_CLIENT_SECRET', 'APP_SECRET_KEY',
 for e in env_vars_needed: 
     if os.getenv(e) == None:
         raise GithubOAuthVarsNotDefined("Please define environment variables: " + pprint.pformat(env_vars_needed))
-                                        
+   
+def connect():
+   # Substitute the 5 pieces of information you got when creating
+   # the Mongo DB Database (underlined in red in the screenshots)
+   # Obviously, do not store your password as plaintext in practice
+    connection = MongoClient(MONGO_DB_HOST, MONGO_DB_PORT)
+    handle = connection[MONGO_DB_DATABASE_NAME]
+    handle.authenticate(MONGO_DB_DATABASE_USERNAME, MONGO_DB_DATABASE_PASSWORD)
+    return handle   
+   
 app = Flask(__name__)
-
-app.debug = True
+handle = connect()
 
 app.secret_key = os.environ['APP_SECRET_KEY']
 oauth = OAuth(app)
@@ -143,4 +153,4 @@ def get_github_oauth_token():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
