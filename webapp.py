@@ -72,12 +72,14 @@ github = oauth.remote_app(
 
 @app.context_processor
 def inject_logged_in():
-    return dict(logged_in=('github_token' in session))
+    return dict(logged_in=(is_logged_in()))
 
 @app.context_processor
 def inject_github_org():
     return dict(github_org=os.getenv('GITHUB_ORG'))
 
+def is_logged_in():
+    return 'github_token' in session
 
 @app.route('/')
 def home():
@@ -143,15 +145,24 @@ def authorized():
     
 @app.route('/list')
 def list():
+    if not is_logged_in():
+        flash("You must be logged in to do that",'error')
+        return redirect(url_for('home'))    
     userinputs = [x for x in mongo.db.mycollection.find()]
     return render_template('list.html',userinputs = userinputs)
 
 @app.route('/add')
 def add():
+    if not is_logged_in():
+        flash("You must be logged in to do that",'error')
+        return redirect(url_for('home'))    
     return render_template('add.html')
 
 @app.route('/delete/<oid>',methods=['POST'])
 def delete(oid):
+    if not is_logged_in():
+        flash("You must be logged in to do that",'error')
+        return redirect(url_for('home'))    
     result = mongo.db.mycollection.delete_one({'_id': ObjectId(oid)})
     if result.deleted_count == 0:
         flash("Error: Record with oid " + repr(oid) + " was not deleted",'error')
@@ -166,6 +177,9 @@ def delete(oid):
 
 @app.route('/write',methods=['POST'])
 def write():
+    if not is_logged_in():
+        flash("You must be logged in to do that",'error')
+        return redirect(url_for('home'))    
     title = request.form.get("title") # match "id", "name" in form
     content = request.form.get("content") # match "id", "name" in form
     result = mongo.db.mycollection.insert_one(
